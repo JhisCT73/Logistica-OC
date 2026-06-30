@@ -1,0 +1,11 @@
+@model IEnumerable<LogiticaOC.Application.DTOs.DashboardItemDto>
+@{
+    ViewData["Title"] = "Dashboard";
+    var filtros = ViewBag.Filtros as LogiticaOC.Presentation.ViewModels.BusquedaVM;
+}
+
+<div id="dashboard-content-container">
+    <partial name="_DashboardContent" model="Model" />
+</div>
+
+@* La tabla ahora se renderiza a través de la vista parcial en el contenedor superior *@

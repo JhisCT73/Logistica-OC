@@ -1,0 +1,92 @@
+@model IEnumerable<LogiticaOC.Application.DTOs.DashboardItemDto>
+
+<!-- Tabla -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table me-2"></i>Listado de Órdenes de Compra</span>
+        <span class="badge bg-secondary font-monospace">@Model.Count() items</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                <thead class="table-dark text-nowrap">
+                    <tr>
+                        <th>N° OC</th>
+                        <th>Entidad / Razón Social</th>
+                        <th>Responsable</th>
+                        <th class="text-center">F. Correo</th>
+                        <th class="text-center">F. Solicitada</th>
+                        <th class="text-center">Plazo (Días)</th>
+                        <th class="text-center">Días Rest.</th>
+                        <th class="text-center">Semáforo</th>
+                        <th>Destino / Dpto</th>
+                        <th>Movilidad</th>
+                        <th class="text-center">Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var oc in Model)
+                    {
+                        <tr>
+                            <td class="text-nowrap"><strong>@oc.NumeroOC</strong></td>
+                            <td>
+                                <div class="fw-semibold">@oc.RazonSocial</div>
+                            </td>
+                            <td>
+                                <span class="text-muted"><i class="bi bi-person me-1"></i>@(oc.Responsable ?? "—")</span>
+                            </td>
+                            <td class="text-center text-nowrap">@oc.FechaLlegadaCorreo.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center text-nowrap">@oc.FechaSolicitada.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center font-monospace">@(oc.TotalDiasEstablecidos?.ToString() ?? "—")</td>
+                            <td class="text-center font-monospace">
+                                @if (oc.DiasRestantes < 0)
+                                {
+                                    <span class="text-danger fw-bold">Vencido (@Math.Abs(oc.DiasRestantes)d)</span>
+                                }
+                                else
+                                {
+                                    <span>@oc.DiasRestantes d</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <span class="badge alerta-@oc.AlertaNivel rounded-pill px-2 py-1">
+                                    ● @(char.ToUpper(oc.AlertaNivel[0]) + oc.AlertaNivel.Substring(1))
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 180px;" title="@oc.LugarEntrega @(string.IsNullOrEmpty(oc.Departamento) ? "" : $"({oc.Departamento})")">
+                                    @oc.LugarEntrega
+                                    @if (!string.IsNullOrEmpty(oc.Departamento))
+                                    {
+                                        <span class="text-muted small">(@oc.Departamento)</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="text-nowrap">
+                                <span class="badge bg-light text-dark font-monospace" style="font-size:0.75rem;">@oc.Movilidad</span>
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <span class="estado-badge" style="background:@(oc.ColorEstado)22;color:@oc.ColorEstado">
+                                    @oc.EstadoOC
+                                </span>
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <a asp-action="Detail" asp-route-id="@oc.OcId" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@oc.OcId" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="12" class="text-center text-muted py-4">No hay órdenes que mostrar</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

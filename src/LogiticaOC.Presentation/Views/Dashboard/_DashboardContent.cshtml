@@ -1,0 +1,113 @@
+@model IEnumerable<LogiticaOC.Application.DTOs.DashboardItemDto>
+@{
+    var clientesMetricas = ViewBag.ClientesMetricas as IEnumerable<LogiticaOC.Application.DTOs.ClienteMetricasDto>;
+}
+
+<!-- Métricas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-icon" style="background:rgba(79,142,247,.15);color:#4f8ef7">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <div class="metric-value">@ViewBag.TotalPendientes</div>
+                <div class="metric-label">OC Pendientes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-icon" style="background:rgba(34,197,94,.15);color:#22c55e">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <div class="metric-value">@ViewBag.TotalEntregadas</div>
+                <div class="metric-label">OC Entregadas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="metric-icon" style="background:rgba(239,68,68,.15);color:#ef4444">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <div class="metric-value">@ViewBag.TotalCriticas</div>
+                <div class="metric-label">OC Críticas</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla OC por Cliente -->
+<div class="card">
+    <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-person-lines-fill"></i>
+        <span>Órdenes de Compra por Cliente</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-dark text-nowrap">
+                    <tr>
+                        <th class="ps-4">Cliente / Razón Social</th>
+                        <th class="text-center" style="width: 130px;">OC Pendientes</th>
+                        <th class="text-center" style="width: 130px;">OC Entregadas</th>
+                        <th class="text-center" style="width: 180px;">Tasa de Entrega</th>
+                        <th class="text-center" style="width: 110px;">OC Totales</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (clientesMetricas != null && clientesMetricas.Any())
+                    {
+                        foreach (var item in clientesMetricas)
+                        {
+                            var entregadas = item.TotalOcs - item.Pendientes;
+                            var tasaEntrega = item.TotalOcs > 0 ? (entregadas * 100) / item.TotalOcs : 0;
+                            string colorTasa = tasaEntrega switch
+                            {
+                                >= 85 => "bg-success",
+                                >= 50 => "bg-warning",
+                                _ => "bg-danger"
+                            };
+                            <tr>
+                                <td class="ps-4 fw-semibold">@item.RazonSocial</td>
+                                <td class="text-center font-monospace">
+                                    @if (item.Pendientes > 0)
+                                    {
+                                        <span class="badge bg-warning text-dark px-2.5 py-1 fw-bold rounded-pill">
+                                            @item.Pendientes
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="text-center font-monospace text-success fw-semibold">
+                                    @(entregadas > 0 ? entregadas.ToString() : "—")
+                                </td>
+                                <td class="px-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; background-color: rgba(255,255,255,.08);">
+                                            <div class="progress-bar @colorTasa" role="progressbar" style="width: @tasaEntrega%;" aria-valuenow="@tasaEntrega" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <span class="small font-monospace fw-bold" style="width: 35px; text-align: right;">@tasaEntrega%</span>
+                                    </div>
+                                </td>
+                                <td class="text-center font-monospace fw-bold text-info">@item.TotalOcs</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No hay información de clientes</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

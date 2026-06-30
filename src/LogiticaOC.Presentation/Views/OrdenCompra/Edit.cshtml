@@ -1,0 +1,281 @@
+@model OrdenCompraFormVM
+@{
+    ViewData["Title"] = $"Editar OC {Model.NumeroOC}";
+    var returnUrl = ViewBag.ReturnUrl as string;
+    if (string.IsNullOrEmpty(returnUrl))
+    {
+        returnUrl = Url.Action("Detail", new { id = Model.OcId });
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h4 mb-0">Editar OC <span class="text-accent">@Model.NumeroOC</span></h1>
+        <p class="text-muted small mt-1">El número de OC no puede modificarse</p>
+    </div>
+    <a href="@returnUrl" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data" id="frmOC">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="OcId" />
+    <input type="hidden" asp-for="NumeroOC" />
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-file-earmark-text me-2"></i>Datos de la OC</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Número de OC</label>
+                            <input value="@Model.NumeroOC" class="form-control" disabled />
+                            <small class="text-muted">Campo bloqueado</small>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="RazonSocialEntidad" class="form-label"></label>
+                            <input asp-for="RazonSocialEntidad" id="entidadInput" class="form-control" autocomplete="off" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FechaLlegadaCorreo" class="form-label"></label>
+                            <input asp-for="FechaLlegadaCorreo" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FechaSolicitada" class="form-label"></label>
+                            <input asp-for="FechaSolicitada" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="TotalDiasEstablecidos" class="form-label"></label>
+                            <input asp-for="TotalDiasEstablecidos" type="number" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FechaDespacho" class="form-label"></label>
+                            <input asp-for="FechaDespacho" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FechaCierre" class="form-label"></label>
+                            <input asp-for="FechaCierre" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ResponsableId" class="form-label"></label>
+                            <select asp-for="ResponsableId" asp-items="Model.Responsables" class="form-select">
+                                <option value="">— Sin asignar —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EstadoOcId" class="form-label"></label>
+                            <select asp-for="EstadoOcId" asp-items="Model.EstadosOC" class="form-select"></select>
+                        </div>
+                        <div class="col-md-5">
+                            <label asp-for="LugarEntrega" class="form-label"></label>
+                            <input asp-for="LugarEntrega" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Departamento" class="form-label"></label>
+                            <input asp-for="Departamento" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Movilidad" class="form-label"></label>
+                            <input asp-for="Movilidad" class="form-control" />
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label"></label>
+                            <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Observación del cambio <small class="text-muted">(se guarda en historial)</small></label>
+                            <input type="text" name="observacion" class="form-control" placeholder="Ej: Se cambió responsable por ausencia..." />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-boxes me-2"></i>Productos</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnAgregarProducto">
+                        <i class="bi bi-plus-lg"></i> Agregar
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:100px">Código</th>
+                                <th>Descripción</th>
+                                <th style="width:90px">Cantidad</th>
+                                <th style="width:160px">Estado</th>
+                                <th style="width:36px"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="productosBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- PDF -->
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-paperclip me-2"></i>PDF Adjunto</div>
+                <div class="card-body">
+                    @if (Model.PDFNombreArchivo != null)
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:rgba(79,142,247,.08)">
+                            <i class="bi bi-file-earmark-pdf text-danger"></i>
+                            <a asp-action="DescargarPdf" asp-route-id="@Model.OcId" class="small" target="_blank">
+                                @Model.PDFNombreArchivo
+                            </a>
+                        </div>
+                    }
+                    <input type="file" name="pdfFile" accept=".pdf" class="form-control" />
+                    <small class="text-muted">Reemplaza el PDF anterior si se sube uno nuevo.</small>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-check-lg me-1"></i> Guardar cambios
+                    </button>
+                    <a href="@returnUrl" class="btn btn-outline-secondary w-100">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<template id="tmplProducto">
+    <tr class="producto-row">
+        <td>
+            <input type="hidden" name="Detalles.Index" value="__IDX__" />
+            <input type="text" class="form-control form-control-sm" name="Detalles[__IDX__].CodigoProducto" />
+        </td>
+        <td><input type="text" class="form-control form-control-sm" name="Detalles[__IDX__].Descripcion" required /></td>
+        <td><input type="number" step="0.01" class="form-control form-control-sm" name="Detalles[__IDX__].Cantidad" value="1" required /></td>
+        <td>
+            <select class="form-select form-select-sm estado-producto-select" name="Detalles[__IDX__].EstadoProductoId">
+                ESTADOS_OPTIONS
+            </select>
+            <input type="hidden" name="Detalles[__IDX__].DetalleId" value="0" />
+            <div class="motivo-parcial mt-1" style="display:none">
+                <input type="text" class="form-control form-control-sm" name="Detalles[__IDX__].MotivoEntregaParcial"
+                       placeholder="Motivo entrega parcial..." />
+            </div>
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-producto">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+@{
+    var estadosOptsHtml = Model.EstadosProducto != null
+        ? string.Join("", Model.EstadosProducto.Select(i => $"<option value='{i.Value}'>{i.Text}</option>"))
+        : "";
+}
+
+<script>
+    window.EditOC = {
+        estadosOptions: `@Html.Raw(estadosOptsHtml)`,
+        productoIdx: 0,
+        
+        agregarProducto: function(datos) {
+            var self = this;
+            var tmpl = document.getElementById('tmplProducto').innerHTML
+                .split('__IDX__').join(self.productoIdx)
+                .replace('ESTADOS_OPTIONS', self.estadosOptions);
+            var parser = new DOMParser();
+            var fila = parser.parseFromString('<table><tbody>' + tmpl + '</tbody></table>', 'text/html').querySelector('tr');
+
+            if (datos) {
+                fila.querySelector('[name$=".CodigoProducto"]').value = datos.codigo || '';
+                fila.querySelector('[name$=".Descripcion"]').value = datos.descripcion || '';
+                fila.querySelector('[name$=".Cantidad"]').value = datos.cantidad || 1;
+                fila.querySelector('[name$=".EstadoProductoId"]').value = datos.estadoId || 0;
+                fila.querySelector('[name$=".DetalleId"]').value = datos.detalleId || 0;
+                if (datos.motivo) {
+                    fila.querySelector('[name$=".MotivoEntregaParcial"]').value = datos.motivo;
+                    fila.querySelector('.motivo-parcial').style.display = '';
+                }
+            }
+
+            document.getElementById('productosBody').appendChild(fila);
+            fila.querySelector('.estado-producto-select').addEventListener('change', function () {
+                var show = this.options[this.selectedIndex].text === 'Entrega Parcial';
+                fila.querySelector('.motivo-parcial').style.display = show ? '' : 'none';
+            });
+            self.productoIdx++;
+        },
+
+        inicializar: function() {
+            var self = this;
+            self.productoIdx = 0;
+
+            // Limpiar tbody de productos por si hubiera filas de una carga anterior
+            var tbody = document.getElementById('productosBody');
+            if (tbody) tbody.innerHTML = '';
+
+            // Delegación de eventos directa sobre el botón (más simple que jQuery global)
+            var btnAgregar = document.getElementById('btnAgregarProducto');
+            if (btnAgregar) {
+                // Clonar el botón para remover listeners anteriores
+                var btnNuevo = btnAgregar.cloneNode(true);
+                btnAgregar.parentNode.replaceChild(btnNuevo, btnAgregar);
+                btnNuevo.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    self.agregarProducto();
+                });
+            }
+
+            // Delegación para eliminar productos
+            if (tbody) {
+                var tbodyNuevo = tbody.cloneNode(false);
+                tbody.parentNode.replaceChild(tbodyNuevo, tbody);
+                // reasignar tbody limpio
+                var tbodyFinal = document.getElementById('productosBody');
+                tbodyFinal.addEventListener('click', function(e) {
+                    var btn = e.target.closest('.btn-eliminar-producto');
+                    if (btn) {
+                        e.preventDefault();
+                        btn.closest('tr').remove();
+                    }
+                });
+
+                // Cargar detalles existentes
+                var detallesIniciales = @Html.Raw(Json.Serialize(Model.Detalles));
+                if (detallesIniciales && detallesIniciales.length > 0) {
+                    detallesIniciales.forEach(function(d) {
+                        self.agregarProducto({
+                            detalleId: d.detalleId,
+                            codigo: d.codigoProducto,
+                            descripcion: d.descripcion,
+                            cantidad: d.cantidad,
+                            estadoId: d.estadoProductoId,
+                            motivo: d.motivoEntregaParcial
+                        });
+                    });
+                }
+            }
+
+            // Autocomplete entidades
+            if (typeof $ !== 'undefined' && $.fn.autocomplete) {
+                $('#entidadInput').autocomplete({
+                    source: function(req, resp) {
+                        $.getJSON('@Url.Action("AutocompleteEntidades","OrdenCompra")', { term: req.term }, resp);
+                    },
+                    select: function(e, ui) { $('#entidadInput').val(ui.item.value); }
+                });
+            }
+        }
+    };
+
+    // Inicializar inmediatamente — el script está inline en el body, el DOM ya está listo
+    window.EditOC.inicializar();
+</script>

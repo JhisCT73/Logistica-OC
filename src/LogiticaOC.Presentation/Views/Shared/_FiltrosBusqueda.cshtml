@@ -1,0 +1,76 @@
+@model LogiticaOC.Presentation.ViewModels.BusquedaVM
+@{
+    var target = ViewData["Target"] ?? "#oc-table-container";
+}
+
+<!-- Filtros de Búsqueda -->
+<div class="card mb-3">
+    <div class="card-body py-2 px-3">
+        <form method="get" class="frm-filtros-ajax" data-target="@target">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label font-monospace text-muted mb-1" style="font-size: 0.7rem;">N° OC</label>
+                    <input name="NumeroOC" value="@Model?.NumeroOC" class="form-control form-control-sm" placeholder="Ej: OC-12345" />
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label font-monospace text-muted mb-1" style="font-size: 0.7rem;">Entidad</label>
+                    <select name="EntidadId" class="form-select form-select-sm select2-simple">
+                        <option value="">Todas</option>
+                        @if (Model?.Entidades != null)
+                        {
+                            foreach (var item in Model.Entidades)
+                            {
+                                if (item.Selected) { <option value="@item.Value" selected>@item.Text</option> }
+                                else { <option value="@item.Value">@item.Text</option> }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label font-monospace text-muted mb-1" style="font-size: 0.7rem;">Responsable</label>
+                    <select name="ResponsableId" class="form-select form-select-sm select2-simple">
+                        <option value="">Todos</option>
+                        @if (Model?.Responsables != null)
+                        {
+                            foreach (var item in Model.Responsables)
+                            {
+                                if (item.Selected) { <option value="@item.Value" selected>@item.Text</option> }
+                                else { <option value="@item.Value">@item.Text</option> }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label class="form-label font-monospace text-muted mb-1" style="font-size: 0.7rem;">Estado</label>
+                    <select name="EstadoOcId" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        @if (Model?.EstadosOC != null)
+                        {
+                            foreach (var item in Model.EstadosOC)
+                            {
+                                if (item.Selected) { <option value="@item.Value" selected>@item.Text</option> }
+                                else { <option value="@item.Value">@item.Text</option> }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-12">
+                    <label class="form-label font-monospace text-muted mb-1" style="font-size: 0.7rem;">Rango de Fechas (Correo)</label>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="date" name="FechaDesde" value="@Model?.FechaDesde?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="font-size: 0.75rem;" />
+                        <span class="text-muted small">a</span>
+                        <input type="date" name="FechaHasta" value="@Model?.FechaHasta?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" style="font-size: 0.75rem;" />
+                    </div>
+                </div>
+                <div class="col-md-1 col-sm-12 d-flex gap-1 justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-sm px-2 w-100" title="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-2 w-100 btn-limpiar-filtros" title="Limpiar">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

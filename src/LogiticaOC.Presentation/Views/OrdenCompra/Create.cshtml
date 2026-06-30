@@ -1,0 +1,83 @@
+@model OrdenCompraFormVM
+@{
+    ViewData["Title"] = "Nueva Orden de Compra";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h4 mb-0">Nueva Orden de Compra</h1>
+        <p class="text-muted small mt-1">Completá los datos de la OC recibida por correo</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12">
+        <partial name="_FormCreatePartial" model="Model" />
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const estadosOptions = document.getElementById('estadosOptionsData')?.dataset.options || '';
+    const ENTREGA_PARCIAL_NOMBRE = "Entrega Parcial";
+
+    let productoIdx = 0;
+
+    function agregarProducto(datos = null) {
+        const tmpl = document.getElementById('tmplProducto').innerHTML
+            .replaceAll('__IDX__', productoIdx)
+            .replace('ESTADOS_OPTIONS', estadosOptions);
+
+        const parser = new DOMParser();
+        const fila = parser.parseFromString(`<table><tbody>${tmpl}</tbody></table>`, 'text/html')
+            .querySelector('tr');
+
+        if (datos) {
+            fila.querySelector('[name$=".CodigoProducto"]').value = datos.codigo || '';
+            fila.querySelector('[name$=".Descripcion"]').value = datos.descripcion || '';
+            fila.querySelector('[name$=".Cantidad"]').value = datos.cantidad || 1;
+            fila.querySelector('[name$=".EstadoProductoId"]').value = datos.estadoId || 1;
+            fila.querySelector('[name$=".DetalleId"]').value = datos.detalleId || 0;
+            if (datos.motivo) {
+                fila.querySelector('[name$=".MotivoEntregaParcial"]').value = datos.motivo;
+                fila.querySelector('.motivo-parcial').style.display = '';
+            }
+        }
+
+        document.getElementById('productosBody').appendChild(fila);
+        attachEstadoListener(fila, productoIdx);
+        productoIdx++;
+    }
+
+    function attachEstadoListener(fila, idx) {
+        const sel = fila.querySelector('.estado-producto-select');
+        const motivo = fila.querySelector('.motivo-parcial');
+        sel.addEventListener('change', () => {
+            const texto = sel.options[sel.selectedIndex].text;
+            motivo.style.display = texto === ENTREGA_PARCIAL_NOMBRE ? '' : 'none';
+        });
+    }
+
+    document.getElementById('btnAgregarProducto').addEventListener('click', () => agregarProducto());
+
+    document.getElementById('productosBody').addEventListener('click', e => {
+        if (e.target.closest('.btn-eliminar-producto')) {
+            e.target.closest('tr').remove();
+        }
+    });
+
+    // Autocomplete entidades
+    $('#entidadInput').autocomplete({
+        source: function (req, resp) {
+            $.getJSON('@Url.Action("AutocompleteEntidades", "OrdenCompra")', { term: req.term }, resp);
+        },
+        minLength: 2
+    });
+
+    // Agregar 1 fila vacía al iniciar
+    agregarProducto();
+</script>
+}

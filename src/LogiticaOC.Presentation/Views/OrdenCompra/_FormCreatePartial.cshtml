@@ -1,0 +1,149 @@
+@model OrdenCompraFormVM
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" id="frmOC">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <!-- ── CABECERA ─────────────────────────────────────────────── -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-file-earmark-text me-2"></i>Datos de la OC</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="NumeroOC" class="form-label"></label>
+                            <input asp-for="NumeroOC" class="form-control" placeholder="Ej: OC-2024-001" />
+                            <span asp-validation-for="NumeroOC" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="RazonSocialEntidad" class="form-label"></label>
+                            <input asp-for="RazonSocialEntidad" id="entidadInput" class="form-control"
+                                   placeholder="Escribí para buscar o crear..." autocomplete="off" />
+                            <span asp-validation-for="RazonSocialEntidad" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FechaLlegadaCorreo" class="form-label"></label>
+                            <input asp-for="FechaLlegadaCorreo" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FechaSolicitada" class="form-label"></label>
+                            <input asp-for="FechaSolicitada" type="date" class="form-control" />
+                            <span asp-validation-for="FechaSolicitada" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="TotalDiasEstablecidos" class="form-label"></label>
+                            <input asp-for="TotalDiasEstablecidos" type="number" class="form-control" placeholder="Ej: 30" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ResponsableId" class="form-label"></label>
+                            <select asp-for="ResponsableId" asp-items="Model.Responsables" class="form-select">
+                                <option value="">— Sin asignar —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EstadoOcId" class="form-label"></label>
+                            <select asp-for="EstadoOcId" asp-items="Model.EstadosOC" class="form-select"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LugarEntrega" class="form-label"></label>
+                            <input asp-for="LugarEntrega" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Departamento" class="form-label"></label>
+                            <input asp-for="Departamento" id="departamentoInput" class="form-control" placeholder="Ej: Lima..." />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Movilidad" class="form-label"></label>
+                            <input asp-for="Movilidad" class="form-control" placeholder="Agencia o ATENCIÓN DIRECTA" />
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label"></label>
+                            <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PRODUCTOS ──────────────────────────────────────── -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-boxes me-2"></i>Productos</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnAgregarProducto">
+                        <i class="bi bi-plus-lg"></i> Agregar producto
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0" id="tablaProductos">
+                        <thead>
+                            <tr>
+                                <th style="width:100px">Código</th>
+                                <th>Descripción *</th>
+                                <th style="width:90px">Cantidad *</th>
+                                <th style="width:160px">Estado</th>
+                                <th style="width:36px"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="productosBody">
+                            <!-- JS renderiza filas aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SIDEBAR ────────────────────────────────────────────── -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-paperclip me-2"></i>PDF Adjunto</div>
+                <div class="card-body">
+                    <label class="form-label">Adjuntar PDF de la OC</label>
+                    <input type="file" name="pdfFile" accept=".pdf" class="form-control" />
+                    <small class="text-muted">Solo archivos PDF. Máximo un archivo por OC.</small>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 mb-2 btn-submit-oc-form">
+                        <i class="bi bi-check-lg me-1"></i> Guardar Orden de Compra
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Template fila producto (oculto) -->
+<template id="tmplProducto">
+    <tr class="producto-row">
+        <td>
+            <input type="hidden" name="Detalles.Index" value="__IDX__" />
+            <input type="text" class="form-control form-control-sm" name="Detalles[__IDX__].CodigoProducto" />
+        </td>
+        <td><input type="text" class="form-control form-control-sm" name="Detalles[__IDX__].Descripcion" required /></td>
+        <td><input type="number" step="0.01" class="form-control form-control-sm" name="Detalles[__IDX__].Cantidad" value="1" required /></td>
+        <td>
+            <select class="form-select form-select-sm estado-producto-select" name="Detalles[__IDX__].EstadoProductoId" data-idx="__IDX__">
+                ESTADOS_OPTIONS
+            </select>
+            <input type="hidden" name="Detalles[__IDX__].DetalleId" value="0" />
+            <div class="motivo-parcial mt-1" style="display:none">
+                <input type="text" class="form-control form-control-sm" name="Detalles[__IDX__].MotivoEntregaParcial"
+                       placeholder="Motivo entrega parcial..." />
+            </div>
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-producto" title="Eliminar">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+@{
+    var estadosOptsHtml = Model.EstadosProducto != null
+        ? string.Join("", Model.EstadosProducto.Select(i => $"<option value='{i.Value}'>{i.Text}</option>"))
+        : "";
+}
+<div id="estadosOptionsData" data-options="@estadosOptsHtml" style="display:none"></div>

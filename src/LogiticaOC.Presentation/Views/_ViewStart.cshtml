@@ -1,0 +1,5 @@
+@{
+    Layout = ViewContext.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest"
+        ? null
+        : "_Layout";
+}

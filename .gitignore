@@ -1,0 +1,27 @@
+## Target folders
+[Bb]in/
+[Oo]bj/
+[Tt]emp/
+
+## Visual Studio cache and settings
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+## VS Code settings
+.vscode/
+
+## Antigravity / Gemini temporary files
+.gemini/
+antigravity-ide/
+brain/
+scratch/
+walkthrough.md
+task.md
+implementation_plan.md
+
+## OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

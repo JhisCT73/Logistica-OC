@@ -1,0 +1,378 @@
+@model OrdenCompraFormVM
+@{
+    ViewData["Title"] = $"Detalle OC {Model.NumeroOC}";
+    var estadoColor = (string)(ViewBag.ColorEstado ?? "#4f8ef7");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <div class="d-flex align-items-center gap-3">
+            <h1 class="h4 mb-0">@Model.NumeroOC</h1>
+            <span class="estado-badge fs-6" style="background:@(estadoColor)22;color:@estadoColor">
+                @(ViewBag.EstadoNombre ?? "")
+            </span>
+        </div>
+        <p class="text-muted small mt-1">
+            Registrada el @(ViewBag.FechaRegistro != null ? ((DateTime)ViewBag.FechaRegistro).ToString("dd/MM/yyyy HH:mm") : "")
+        </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Edit" asp-route-id="@Model.OcId" asp-route-returnUrl="@Url.Action("Detail", new { id = Model.OcId })" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        <a asp-action="ExportarPdf" asp-route-id="@Model.OcId" class="btn btn-outline-secondary btn-sm" target="_blank">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+        </a>
+        @if (Model.PDFNombreArchivo != null)
+        {
+            <a asp-action="DescargarPdf" asp-route-id="@Model.OcId" class="btn btn-outline-secondary btn-sm" target="_blank">
+                <i class="bi bi-download"></i> PDF adjunto
+            </a>
+        }
+        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalCancelar">
+            <i class="bi bi-x-circle"></i> Cancelar OC
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- ── DATOS CABECERA ──────────────────────────────────────────── -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-info-circle me-2"></i>Datos de la OC</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small mb-1">Entidad</div>
+                        <div class="fw-500">@Model.RazonSocialEntidad</div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small mb-1">Responsable</div>
+                        <div class="fw-500">@(Model.Responsables?.SelectedValues?.Cast<string>()?.FirstOrDefault() ?? "Sin asignar")</div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small mb-1">Días establecidos</div>
+                        <div class="fw-500">@(Model.TotalDiasEstablecidos?.ToString() ?? "—")</div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="text-muted small mb-1">Llegada correo</div>
+                        <div>@Model.FechaLlegadaCorreo.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="text-muted small mb-1">Fecha solicitada</div>
+                        <div>@Model.FechaSolicitada.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="text-muted small mb-1">Fecha despacho</div>
+                        <div class="d-flex align-items-center">
+                            <input type="date" value="@(Model.FechaDespacho?.ToString("yyyy-MM-dd"))" 
+                                   class="form-control form-control-sm bg-transparent border-0 border-bottom p-0 dynamic-date-update" 
+                                   data-field="FechaDespacho" data-oc-id="@Model.OcId" 
+                                   style="color: var(--text); max-width: 135px; font-weight: 500; font-size: 0.875rem;" />
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="text-muted small mb-1">Fecha cierre</div>
+                        <div class="d-flex align-items-center">
+                            <input type="date" value="@(Model.FechaCierre?.ToString("yyyy-MM-dd"))" 
+                                   class="form-control form-control-sm bg-transparent border-0 border-bottom p-0 dynamic-date-update" 
+                                   data-field="FechaCierre" data-oc-id="@Model.OcId" 
+                                   style="color: var(--text); max-width: 135px; font-weight: 500; font-size: 0.875rem;" />
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small mb-1">Lugar de entrega</div>
+                        <div>@(Model.LugarEntrega ?? "—")</div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small mb-1">Departamento</div>
+                        <div>@(Model.Departamento ?? "—")</div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="text-muted small mb-1">Movilidad / Agencia</div>
+                        <div>@(Model.Movilidad ?? "—")</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Observaciones))
+                    {
+                        <div class="col-12">
+                            <div class="text-muted small mb-1">Observaciones</div>
+                            <div class="p-2 rounded" style="background:rgba(255,255,255,.04)">@Model.Observaciones</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PRODUCTOS ──────────────────────────────────────────── -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-boxes me-2"></i>Productos (@Model.Detalles.Count)</div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.Detalles)
+                        {
+                            <tr>
+                                <td class="text-muted">@(d.CodigoProducto ?? "—")</td>
+                                <td>@d.Descripcion</td>
+                                <td>@d.Cantidad.ToString("N2")</td>
+                                <td>
+                                    <span class="estado-badge" style="background:@(d.EstadoColor)22;color:@d.EstadoColor">
+                                        @d.EstadoNombre
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(d.MotivoEntregaParcial))
+                                    {
+                                        <div class="text-muted small mt-1"><i class="bi bi-info-circle"></i> @d.MotivoEntregaParcial</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Detalles.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-3">Sin productos registrados</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── GUÍAS ──────────────────────────────────────────────── -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-truck me-2"></i>Guías de despacho</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalGuia">
+                    <i class="bi bi-plus-lg"></i> Agregar guía
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0" id="tablaGuias">
+                    <thead>
+                        <tr>
+                            <th>N° Guía</th>
+                            <th>Fecha</th>
+                            <th>Responsable</th>
+                        </tr>
+                    </thead>
+                    <tbody id="guiasBody">
+                        @foreach (var g in Model.Guias)
+                        {
+                            <tr>
+                                <td><strong>@g.NumeroGuia</strong></td>
+                                <td>@g.FechaGuia.ToString("dd/MM/yyyy")</td>
+                                <td>@(g.Responsable ?? "—")</td>
+                            </tr>
+                        }
+                        @if (!Model.Guias.Any())
+                        {
+                            <tr id="trSinGuias"><td colspan="3" class="text-center text-muted py-3">Sin guías registradas</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── HISTORIAL ──────────────────────────────────────────────── -->
+    <div class="col-lg-4">
+        <div class="card sticky-top" style="top:80px">
+            <div class="card-header"><i class="bi bi-clock-history me-2"></i>Historial</div>
+            <div class="card-body p-0" style="max-height:480px;overflow-y:auto">
+                @if (Model.Historial.Any())
+                {
+                    <ul class="historial-list">
+                        @foreach (var h in Model.Historial)
+                        {
+                            <li class="historial-item">
+                                <div class="historial-dot"></div>
+                                <div class="historial-content">
+                                    <div class="historial-fecha">@h.FechaModificacion.ToString("dd/MM/yyyy HH:mm")</div>
+                                    @if (h.EstadoAnterior != h.EstadoNuevo && h.EstadoNuevo != null)
+                                    {
+                                        <div class="historial-cambio">
+                                            <span class="text-muted">@h.EstadoAnterior</span>
+                                            <i class="bi bi-arrow-right mx-1"></i>
+                                            <strong>@h.EstadoNuevo</strong>
+                                        </div>
+                                    }
+                                    @if (h.ResponsableNuevo != null && h.ResponsableAnterior != h.ResponsableNuevo)
+                                    {
+                                        <div class="small text-muted">
+                                            Responsable: @h.ResponsableAnterior → @h.ResponsableNuevo
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(h.Observacion))
+                                    {
+                                        <div class="historial-obs">@h.Observacion</div>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-center text-muted py-3 small">Sin historial registrado</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL AGREGAR GUÍA ──────────────────────────────────────────── -->
+<div class="modal fade" id="modalGuia" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border)">
+            <div class="modal-header" style="border-color:var(--border)">
+                <h5 class="modal-title">Agregar Guía de Despacho</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">N° Guía *</label>
+                    <input type="text" id="guiaNumero" class="form-control" placeholder="Ej: GD-001" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Fecha *</label>
+                    <input type="date" id="guiaFecha" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Responsable</label>
+                    <input type="text" id="guiaResponsable" class="form-control" placeholder="Nombre del responsable..." />
+                </div>
+                <div id="guiaError" class="text-danger small" style="display:none"></div>
+            </div>
+            <div class="modal-footer" style="border-color:var(--border)">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarGuia">
+                    <i class="bi bi-check-lg"></i> Guardar guía
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL CANCELAR OC ───────────────────────────────────────────── -->
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border)">
+            <div class="modal-header" style="border-color:var(--border)">
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Cancelar OC</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Cancelar" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.OcId" />
+                <div class="modal-body">
+                    <p>¿Estás seguro de que querés cancelar la OC <strong>@Model.NumeroOC</strong>?</p>
+                    <label class="form-label">Motivo de cancelación *</label>
+                    <textarea name="motivo" class="form-control" rows="2" required placeholder="Describí el motivo..."></textarea>
+                </div>
+                <div class="modal-footer" style="border-color:var(--border)">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No, volver</button>
+                    <button type="submit" class="btn btn-danger">Sí, cancelar OC</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ── Agregar guía por AJAX ─────────────────────────────────────────
+    document.getElementById('btnGuardarGuia').addEventListener('click', async () => {
+        const numero = document.getElementById('guiaNumero').value.trim();
+        const fecha  = document.getElementById('guiaFecha').value;
+        const resp   = document.getElementById('guiaResponsable').value.trim();
+        const errEl  = document.getElementById('guiaError');
+
+        if (!numero || !fecha) { errEl.textContent = 'N° Guía y Fecha son obligatorios.'; errEl.style.display = ''; return; }
+        errEl.style.display = 'none';
+
+        const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+        const res = await fetch('@Url.Action("AgregarGuia", "OrdenCompra")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+            body: new URLSearchParams({ ocId: '@Model.OcId', 'guiaVm.NumeroGuia': numero, 'guiaVm.FechaGuia': fecha, 'guiaVm.Responsable': resp })
+        });
+
+        if (res.ok) {
+            const tbody = document.getElementById('guiasBody');
+            const sinGuias = document.getElementById('trSinGuias');
+            if (sinGuias) sinGuias.remove();
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><strong>${numero}</strong></td><td>${fecha.split('-').reverse().join('/')}</td><td>${resp || '—'}</td>`;
+            tbody.appendChild(tr);
+
+            document.getElementById('guiaNumero').value = '';
+            document.getElementById('guiaResponsable').value = '';
+            bootstrap.Modal.getInstance(document.getElementById('modalGuia')).hide();
+        } else {
+            errEl.textContent = 'Error al guardar la guía. Intentá de nuevo.';
+            errEl.style.display = '';
+        }
+    });
+
+    // ── Actualizar fechas inline por AJAX ──────────────────────────────
+    document.querySelectorAll('.dynamic-date-update').forEach(el => {
+        el.addEventListener('change', async function () {
+            const ocId = this.dataset.ocId;
+            const campo = this.dataset.field;
+            const fecha = this.value || null;
+            
+            const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+            
+            try {
+                const res = await fetch('@Url.Action("ActualizarFechaRapida", "OrdenCompra")', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded', 
+                        'RequestVerificationToken': token 
+                    },
+                    body: new URLSearchParams({ ocId, campo, fecha })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // Mostrar Toast de éxito
+                    const toast = $(
+                        '<div class="alert alert-success alert-dismissible fade show shadow-lg" style="position:fixed; top:24px; right:24px; z-index:99999;" role="alert">' +
+                        '  <i class="bi bi-check-circle-fill me-2"></i>' + data.message +
+                        '  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                        '</div>'
+                    );
+                    $('body').append(toast);
+                    setTimeout(() => toast.fadeOut(function () { $(this).remove(); }), 3000);
+
+                    // Recargar el área de contenido (SPA)
+                    if (typeof jQuery !== 'undefined') {
+                        const container = jQuery('.content-area');
+                        container.css('opacity', '0.4');
+                        jQuery.get(window.location.pathname + window.location.search, function (html) {
+                            container.html(html).css('opacity', '1');
+                        });
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error al actualizar la fecha.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Ocurrió un error inesperado.');
+            }
+        });
+    });
+</script>
+}

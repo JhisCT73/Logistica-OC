@@ -1,0 +1,160 @@
+@model IEnumerable<LogiticaOC.Domain.Entities.Responsable>
+@{
+    ViewData["Title"] = "Gestión de Responsables";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h4 mb-0">Gestión de Responsables</h1>
+        <p class="text-muted small mt-1">Configuración del catálogo de responsables asignados al despacho de OCs</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Registrar Nuevo Responsable -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-person-plus-fill me-2"></i>Registrar Nuevo Responsable
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label" for="nombre">Nombre Completo</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ej: Juan Pérez" required maxlength="100" />
+                        <div class="form-text text-muted small mt-1 text-muted-dimmed">El nombre debe ser único en el sistema.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-save me-1"></i> Guardar Responsable
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Catálogo de Responsables -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-people-fill"></i>
+                <span>Catálogo de Responsables</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                        <thead class="table-dark text-nowrap">
+                            <tr>
+                                <th class="ps-4">Nombre</th>
+                                <th class="text-center" style="width: 150px;">Estado</th>
+                                <th class="text-center" style="width: 220px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-semibold">
+                                            <span class="@(item.Activo ? "" : "text-muted text-decoration-line-through")">@item.Nombre</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (item.Activo)
+                                            {
+                                                <span class="badge bg-success-subtle text-success px-2.5 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                                    Activo
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                                    Inactivo
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                                <!-- Botón Editar -->
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEditModal(@item.ResponsableId, '@Html.Raw(item.Nombre.Replace("'", "\\'"))')">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </button>
+
+                                                <!-- Botón Toggle Status -->
+                                                <form asp-action="ToggleStatus" asp-route-id="@item.ResponsableId" method="post" class="m-0">
+                                                    @Html.AntiForgeryToken()
+                                                    @if (item.Activo)
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-person-x"></i> Desactivar
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                                            <i class="bi bi-person-check"></i> Activar
+                                                        </button>
+                                                    }
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">No hay responsables registrados</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Responsable -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom border-secondary d-flex align-items-center justify-content-between" style="background-color: var(--bg-sidebar); color: var(--text); padding-right: 1.5rem;">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="bi bi-pencil-square me-2 text-accent"></i>Editar Responsable
+                </h5>
+                <button type="button" class="btn p-1" data-bs-dismiss="modal" aria-label="Cerrar" style="background: transparent; border: none; color: rgba(255, 255, 255, 0.75); transition: all 0.2s;" onmouseover="this.style.color='#ef4444'; this.style.transform='scale(1.15)';" onmouseout="this.style.color='rgba(255, 255, 255, 0.75)'; this.style.transform='scale(1)';">
+                    <i class="bi bi-x-lg fs-4 fw-bold"></i>
+                </button>
+            </div>
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body" style="background-color: var(--bg-card); color: var(--text);">
+                    <input type="hidden" id="editId" name="id" />
+                    <div class="mb-3">
+                        <label for="editNombre" class="form-label">Nombre Completo</label>
+                        <input type="text" class="form-control" id="editNombre" name="nombre" required maxlength="100" />
+                        <div class="form-text text-muted small mt-1 text-muted-dimmed">El nombre debe ser único en el sistema.</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary" style="background-color: var(--bg-sidebar);">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm text-white">
+                        <i class="bi bi-check-lg me-1"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openEditModal(id, nombre) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNombre').value = nombre;
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+        }
+    </script>
+}
